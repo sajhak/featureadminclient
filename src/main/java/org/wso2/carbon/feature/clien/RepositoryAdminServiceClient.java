@@ -1,4 +1,4 @@
-package com.test.feature.client;
+package org.wso2.carbon.feature.clien;
 
 import java.net.URI;
 import java.net.URISyntaxException;

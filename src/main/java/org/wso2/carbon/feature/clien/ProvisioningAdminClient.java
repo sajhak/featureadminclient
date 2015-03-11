@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.test.feature.client;
+package org.wso2.carbon.feature.clien;
 
 import java.util.Arrays;
 
