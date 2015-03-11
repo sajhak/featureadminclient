@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.feature.clien</groupId>
+    <groupId>org.wso2.carbon.feature.client</groupId>
     <artifactId>FeatureAdminServiceClient</artifactId>
     <version>1.0.0</version>
     <repositories>
@@ -95,7 +95,7 @@
             <manifest>
                 <addClasspath>true</addClasspath>
                 <classpathPrefix>lib/</classpathPrefix>
-                <mainClass>org.wso2.carbon.feature.clien.MainClass</mainClass>
+                <mainClass>org.wso2.carbon.feature.client.MainClass</mainClass>
             </manifest>
         </archive>
     </configuration>
