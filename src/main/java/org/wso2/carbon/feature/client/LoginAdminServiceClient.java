@@ -5,8 +5,7 @@ import java.rmi.RemoteException;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.context.ServiceContext;
 import org.apache.axis2.transport.http.HTTPConstants;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.authenticator.stub.LogoutAuthenticationExceptionException;
@@ -15,7 +14,7 @@ public class LoginAdminServiceClient {
     private final String serviceName = "AuthenticationAdmin";
     private AuthenticationAdminStub authenticationAdminStub;
     private String endPoint;
-    private static final Log log = LogFactory.getLog(LoginAdminServiceClient.class);
+    private static final Logger log = Logger.getLogger(LoginAdminServiceClient.class);
     
     public LoginAdminServiceClient(String backEndUrl) throws AxisFault {
         this.endPoint = backEndUrl + "/services/" + serviceName;

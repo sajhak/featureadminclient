@@ -10,10 +10,7 @@ import org.apache.axis2.Constants;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
-import org.apache.axis2.context.ConfigurationContextFactory;
-import org.apache.axis2.engine.AxisConfiguration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.wso2.carbon.feature.mgt.core.operations.OperationFactory;
 import org.wso2.carbon.feature.mgt.stub.ProvisioningAdminServiceCallbackHandler;
 import org.wso2.carbon.feature.mgt.stub.ProvisioningAdminServiceStub;
@@ -27,8 +24,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 public class ProvisioningAdminClient {
 
 	public ProvisioningAdminServiceStub provAdminStub;
-	private static final Log log = LogFactory
-			.getLog(ProvisioningAdminClient.class);
+	private static final Logger log = Logger.getLogger(ProvisioningAdminClient.class);
 	private boolean isComplete = false;
 	private boolean isError = false;
 	private Exception exception;

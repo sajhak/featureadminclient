@@ -2,28 +2,19 @@ package org.wso2.carbon.feature.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.rmi.RemoteException;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.ResourceBundle;
 
-import org.apache.axis2.Constants;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
-import org.apache.axis2.context.ConfigurationContextFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.feature.mgt.stub.ProvisioningAdminServiceCallbackHandler;
+import org.apache.log4j.Logger;
 import org.wso2.carbon.feature.mgt.stub.RepositoryAdminServiceCallbackHandler;
 import org.wso2.carbon.feature.mgt.stub.RepositoryAdminServiceStub;
-import org.wso2.carbon.feature.mgt.stub.prov.data.ProfileHistory;
 import org.wso2.carbon.feature.mgt.stub.prov.data.RepositoryInfo;
-import org.wso2.carbon.utils.CarbonUtils;
 
 public class RepositoryAdminServiceClient {
 
-    private static final Log log = LogFactory.getLog(RepositoryAdminServiceClient.class);
+    private static final Logger log = Logger.getLogger(RepositoryAdminServiceClient.class);
 
     private boolean isComplete = false;
     private boolean isError = false;

@@ -14,8 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.context.ConfigurationContextFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -28,10 +27,11 @@ import org.wso2.carbon.feature.mgt.stub.prov.data.RepositoryInfo;
 
 public class MainClass {
 
-	private static final Log log = LogFactory.getLog(MainClass.class);
+	final static Logger log = Logger.getLogger(MainClass.class);
 
 	public static void main(String[] args) throws Exception {
 
+		
 		PropertyConfigurator.configure(MainClass.class.getResource("/log4j.properties"));
 		readProperties();
 		String path = System.getProperty("keystore.path");
@@ -39,22 +39,20 @@ public class MainClass {
 		System.setProperty("javax.net.ssl.trustStorePassword", System.getProperty("keystore.password"));
 		String backendServerURL = System.getProperty("server.url");
 		String repoPath = System.getProperty("repo.path");
-		String featureListFile = System.getenv("feature.list.file");
+		String featureListFile = System.getProperty("feature.list.file");
 		String userName = System.getProperty("user.name");
 		String password = System.getProperty("user.password");
 		String repoURL = System.getProperty("p2.repo.url");
 		String repoName = System.getProperty("p2.repo.name");
 		boolean isLocalRepo = Boolean.parseBoolean(System.getProperty("p2.repo.local"));
 		//String axis2ClientPath = "axis2_client.xml";
-		
+				
 		LoginAdminServiceClient login = null;
 		boolean repoAlreadyAdded = false;
 		
 		try {
 			
 			// Read prop file
-				    
-		    
 			login = new LoginAdminServiceClient(backendServerURL);
 			String sessionCookie = login.authenticate(userName, password);
 			
@@ -89,7 +87,7 @@ public class MainClass {
 				throw new Exception("Failed to review the installation plan");
 			}
 			proceedToNextStep = installActionResult.getProceedWithInstallation();
-			System.out.println("Install action result: " + proceedToNextStep);
+			log.info("Install action result: " + proceedToNextStep);
 			FeatureInfo[] reviewedFeatures = installActionResult.getReviewedInstallableFeatures();
 			if (reviewedFeatures == null || reviewedFeatures.length == 0) {
 				log.info("No features to be installed");
@@ -110,10 +108,13 @@ public class MainClass {
 
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e.getMessage(),e);
+			throw e;
+		} finally {
+			System.exit(0);
 		}
 
-		System.out.println("Login out");
+		log.info("Login out");
 		login.logOut();
 		
 		System.exit(0);		
@@ -132,6 +133,9 @@ public class MainClass {
 		while (e.hasMoreElements()) {
 			String key = (String) e.nextElement();
 			String value = prop.getProperty(key);
+			if(log.isDebugEnabled()) {
+			log.debug("Adding key "+ key +" and value "+ value);
+			}
 			System.setProperty(key, value);
 		}
 	}
