@@ -30,16 +30,45 @@ public class MainClass {
 	final static Logger log = Logger.getLogger(MainClass.class);
 
 	public static void main(String[] args) throws Exception {
-
+		
 		
 		PropertyConfigurator.configure(MainClass.class.getResource("/log4j.properties"));
+		// Validate args
+		boolean isArgsValid = false;
+		boolean isFeatureInstallAction = false;
+		boolean isFeatureUninstallAction = false;
+
+		if (args != null && args.length == 1) {
+			for (String arg : args) {
+				if (arg.equals("i")) {
+					log.info(" Feature installation is selected ");
+					isArgsValid = true;
+					isFeatureInstallAction=true;
+				} else if (arg.equals("u")) {
+					log.info(" Feature un-installation is selected ");
+					isArgsValid = true;
+					isFeatureUninstallAction=true;
+				}
+			}
+		}
+		
+		if(!isArgsValid) {
+			log.error(" Wrong arguments provided. Either provide './bin i' to install features"
+					+ " or './bin u' to uninstall features ");
+			return;
+		}
+		
+		
+		
+		
 		readProperties();
 		String path = System.getProperty("keystore.path");
 		System.setProperty("javax.net.ssl.trustStore", path);
 		System.setProperty("javax.net.ssl.trustStorePassword", System.getProperty("keystore.password"));
 		String backendServerURL = System.getProperty("server.url");
 		String repoPath = System.getProperty("repo.path");
-		String featureListFile = System.getProperty("feature.list.file");
+		String installFeatureListFile = System.getProperty("install.feature.list.file");
+		String uninstallFeatureListFile = System.getProperty("uninstall.feature.list.file");
 		String userName = System.getProperty("user.name");
 		String password = System.getProperty("user.password");
 		String repoURL = System.getProperty("p2.repo.url");
@@ -48,77 +77,125 @@ public class MainClass {
 		//String axis2ClientPath = "axis2_client.xml";
 				
 		LoginAdminServiceClient login = null;
-		boolean repoAlreadyAdded = false;
+		
 		
 		try {
 			
-			// Read prop file
 			login = new LoginAdminServiceClient(backendServerURL);
-			String sessionCookie = login.authenticate(userName, password);
+			String sessionCookie = login.authenticate(userName, password);			
 			
-			ConfigurationContext ctx = ConfigurationContextFactory.createConfigurationContextFromFileSystem(
-			repoPath, null);
-			RepositoryAdminServiceClient repoClient = 
-					new RepositoryAdminServiceClient(sessionCookie, backendServerURL, ctx);
 			
-			RepositoryInfo[] repositories = repoClient.getAllRepositories();
-			if (repositories != null) {
-				for (RepositoryInfo repositoryInfo : repositories) {
-					if (repositoryInfo.getNickName().equals(repoName)) {
-						repoAlreadyAdded = true;
-						log.info("Repository [" + repoName + "] is already added");
-					}
-				}
+			ConfigurationContext ctx = ConfigurationContextFactory.
+					createConfigurationContextFromFileSystem(repoPath, null);			
+			
+			if(isFeatureInstallAction) {
+				addRepository(repoURL, repoName, isLocalRepo, sessionCookie,backendServerURL, ctx);			
+				installFeatures(backendServerURL, installFeatureListFile, sessionCookie, ctx);
+			} else if(isFeatureUninstallAction) {
+				uninstallFeatures(backendServerURL, uninstallFeatureListFile, sessionCookie, ctx);
 			}
 			
-			// Add repository
-			if(!repoAlreadyAdded){
-				repoClient.addRepository(repoURL, repoName, isLocalRepo);
-				log.info("Repository ["+repoName + "] added successfully");
-			}
+			log.info("Login out");
+			login.logOut();			
 			
-			ProvisioningAdminClient provClient = new ProvisioningAdminClient(
-					sessionCookie, backendServerURL, ctx);
-			ProvisioningActionResultInfo installActionResult;
-			boolean proceedToNextStep;
-
-			installActionResult = provClient.reviewInstallFeaturesAction(readFeaturesFromFile(featureListFile));
-			if (installActionResult == null) {
-				throw new Exception("Failed to review the installation plan");
-			}
-			proceedToNextStep = installActionResult.getProceedWithInstallation();
-			log.info("Install action result: " + proceedToNextStep);
-			FeatureInfo[] reviewedFeatures = installActionResult.getReviewedInstallableFeatures();
-			if (reviewedFeatures == null || reviewedFeatures.length == 0) {
-				log.info("No features to be installed");
-			}
-
-			if (proceedToNextStep) {
-				log.info("Install feature review successful.");
-
-//				LicenseInfo[] licenseInfo = provClient.getLicensingInformation();
-//				for (LicenseInfo licenseInfo2 : licenseInfo) {
-//					System.out.println(licenseInfo2.getBody());
-//				}
-
-				log.info("Features being installed....");
-				provClient.performInstallation(OperationFactory.INSTALL_ACTION);
-
-				log.info("Features installed successfully");
-
-			}
 		} catch (Exception e) {
 			log.error(e.getMessage(),e);
 			throw e;
 		} finally {
 			System.exit(0);
 		}
-
-		log.info("Login out");
-		login.logOut();
 		
-		System.exit(0);		
+	}
 
+	private static void uninstallFeatures(String backendServerURL, String featureListFile, String sessionCookie,
+			ConfigurationContext ctx) throws Exception {
+
+		ProvisioningAdminClient provClient = new ProvisioningAdminClient(
+				sessionCookie, backendServerURL, ctx);
+		ProvisioningActionResultInfo uninstallActionResult;
+		boolean proceedToNextStep;
+
+		uninstallActionResult = provClient
+				.reviewUninstallFeaturesAction(readFeaturesFromFile(featureListFile));
+		if (uninstallActionResult == null) {
+			throw new Exception("Failed to review the Uninstallation plan");
+		}
+
+		proceedToNextStep = uninstallActionResult.getProceedWithInstallation();
+
+		FeatureInfo[] reviewedFeatures = uninstallActionResult
+				.getReviewedUninstallableFeatures();
+		if (reviewedFeatures == null || reviewedFeatures.length == 0) {
+			log.info("No features to be uninstalled");
+		}
+		
+		if (proceedToNextStep) {
+			log.info("Uninstall feature review successful");
+			log.info("Features being uninstalled....");
+			provClient.performInstallation(OperationFactory.UNINSTALL_ACTION);
+			log.info("Features uninstalled successfully");
+
+		}
+
+	}
+
+	private static void installFeatures(String backendServerURL,
+			String featureListFile, String sessionCookie,
+			ConfigurationContext ctx) throws Exception {
+		ProvisioningAdminClient provClient = new ProvisioningAdminClient(
+				sessionCookie, backendServerURL, ctx);
+		ProvisioningActionResultInfo installActionResult;
+		boolean proceedToNextStep;
+
+		installActionResult = provClient.reviewInstallFeaturesAction(readFeaturesFromFile(featureListFile));
+		if (installActionResult == null) {
+			throw new Exception("Failed to review the installation plan");
+		}
+		proceedToNextStep = installActionResult.getProceedWithInstallation();
+		log.info("Install action result: " + proceedToNextStep);
+		FeatureInfo[] reviewedFeatures = installActionResult.getReviewedInstallableFeatures();
+		if (reviewedFeatures == null || reviewedFeatures.length == 0) {
+			log.info("No features to be installed");
+		}
+
+		if (proceedToNextStep) {
+			log.info("Install feature review successful.");
+
+//				LicenseInfo[] licenseInfo = provClient.getLicensingInformation();
+//				for (LicenseInfo licenseInfo2 : licenseInfo) {
+//					System.out.println(licenseInfo2.getBody());
+//				}
+
+			log.info("Features being installed....");
+			provClient.performInstallation(OperationFactory.INSTALL_ACTION);
+
+			log.info("Features installed successfully");
+
+		}
+	}
+
+	private static void addRepository(String repoURL, String repoName,
+			boolean isLocalRepo, String sessionCookie, String backendServerURL,
+			ConfigurationContext ctx) throws Exception {
+		
+		boolean repoAlreadyAdded = false;
+		RepositoryAdminServiceClient repoClient = 
+				new RepositoryAdminServiceClient(sessionCookie, backendServerURL, ctx);
+		RepositoryInfo[] repositories = repoClient.getAllRepositories();
+		if (repositories != null) {
+			for (RepositoryInfo repositoryInfo : repositories) {
+				if (repositoryInfo.getNickName().equals(repoName)) {
+					repoAlreadyAdded = true;
+					log.info("Repository [" + repoName + "] is already added");
+				}
+			}
+		}
+		
+		// Add repository
+		if(!repoAlreadyAdded){
+			repoClient.addRepository(repoURL, repoName, isLocalRepo);
+			log.info("Repository ["+repoName + "] added successfully");
+		}
 	}
 
 	private static void readProperties() throws FileNotFoundException,

@@ -69,6 +69,19 @@ public class ProvisioningAdminClient {
 		return provisioningActionResultInfo;
 	}
 
+    public ProvisioningActionResultInfo reviewUninstallFeaturesAction(FeatureInfo[] features) throws Exception {
+        ProvisioningActionResultInfo provisioningActionResultInfo = null;
+        try {
+            ProvisioningActionInfo provisioningActionInfo = new ProvisioningActionInfo();
+            provisioningActionInfo.setFeaturesToUninstall(features);
+            provisioningActionInfo.setActionType(OperationFactory.UNINSTALL_ACTION);
+            return provAdminStub.reviewProvisioningAction(provisioningActionInfo);
+        } catch (AxisFault e) {
+			handleException(e.getMessage(), e);
+		}
+        return provisioningActionResultInfo;
+    }
+    
 	public LicenseInfo[] getLicensingInformation() throws Exception {
 		LicenseInfo[] licenseInfo = null;
 		try {
