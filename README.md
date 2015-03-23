@@ -26,7 +26,9 @@ If you want to uninstall features, configure a file with feature id and versions
         p2.repo.local --> Whether you are pointing to a local repo or not  (true/false)
 
 3. Execute the client
-         ./bin.sh i --> To install features      
+
+         ./bin.sh i --> To install features  
+        
 Note: After installing features, the server should be restarted.
 
          ./bin.sh u --> To uninstall features      
